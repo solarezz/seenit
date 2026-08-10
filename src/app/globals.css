@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Маппинг темы Telegram → наши переменные (Telegram проставляет --tg-theme-* на :root). */
+:root {
+  --tg-bg: var(--tg-theme-bg-color, #17212b);
+  --tg-card: var(--tg-theme-secondary-bg-color, #232e3c);
+  --tg-text: var(--tg-theme-text-color, #ffffff);
+  --tg-hint: var(--tg-theme-hint-color, #7d8b99);
+  --tg-accent: var(--tg-theme-button-color, #5ea3f0);
+  --tg-border: rgba(255, 255, 255, 0.08);
+}
+
+html,
+body {
+  background: var(--tg-bg);
+  color: var(--tg-text);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+/* Тонкий скроллбар */
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}

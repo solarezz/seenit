@@ -1,0 +1,137 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TitleType {
+  movie
+  tv
+}
+
+enum WishStatus {
+  want
+  watching
+  watched
+}
+
+enum FriendStatus {
+  pending
+  accepted
+}
+
+enum RecStatus {
+  new
+  added
+  dismissed
+}
+
+model User {
+  id        String   @id @default(cuid())
+  tgId      BigInt   @unique
+  username  String?
+  name      String
+  avatarUrl String?
+  notifPrefs Json    @default("{\"friendRec\":true,\"newReleases\":true,\"newFriend\":true,\"watchReminder\":true}")
+  createdAt DateTime @default(now())
+
+  wishlist     WishlistItem[]
+  favorites    Favorite[]
+  activity     Activity[]
+  sentRecs     Rec[]          @relation("RecFrom")
+  receivedRecs Rec[]          @relation("RecTo")
+  friendsA     Friendship[]   @relation("FriendA")
+  friendsB     Friendship[]   @relation("FriendB")
+}
+
+// Кэш метаданных TMDB, чтобы не дёргать API на каждый рендер
+model Title {
+  id       String    @id @default(cuid())
+  tmdbId   Int
+  type     TitleType
+  title    String
+  year     Int?
+  poster   String?
+  overview String?
+  genres   String[]  @default([])
+
+  wishlist  WishlistItem[]
+  favorites Favorite[]
+  recs      Rec[]
+  activity  Activity[]
+
+  @@unique([tmdbId, type])
+}
+
+model WishlistItem {
+  id      String     @id @default(cuid())
+  userId  String
+  titleId String
+  status  WishStatus @default(want)
+  stars   Int?       // 1..5, только для status = watched
+  addedAt DateTime   @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title Title @relation(fields: [titleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, titleId])
+  @@index([userId, status])
+}
+
+model Favorite {
+  id       String @id @default(cuid())
+  userId   String
+  titleId  String
+  position Int    @default(0)
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title Title @relation(fields: [titleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, titleId])
+}
+
+model Friendship {
+  id        String       @id @default(cuid())
+  userAId   String       // инициатор запроса
+  userBId   String
+  status    FriendStatus @default(pending)
+  createdAt DateTime     @default(now())
+
+  userA User @relation("FriendA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB User @relation("FriendB", fields: [userBId], references: [id], onDelete: Cascade)
+
+  @@unique([userAId, userBId])
+}
+
+model Rec {
+  id        String    @id @default(cuid())
+  fromId    String
+  toId      String
+  titleId   String
+  comment   String?
+  status    RecStatus @default(new)
+  createdAt DateTime  @default(now())
+
+  from  User  @relation("RecFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  to    User  @relation("RecTo", fields: [toId], references: [id], onDelete: Cascade)
+  title Title @relation(fields: [titleId], references: [id], onDelete: Cascade)
+
+  @@index([toId, status])
+}
+
+model Activity {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // added | rated | watched | favorited
+  titleId   String
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title Title @relation(fields: [titleId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
