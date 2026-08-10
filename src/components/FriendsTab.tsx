@@ -22,7 +22,7 @@ export default function FriendsTab({
 
   return (
     <div className="pb-24">
-      <div className="sticky top-0 z-10 flex gap-2 bg-[var(--tg-bg)] px-4 py-3">
+      <div className="sticky z-10 flex gap-2 bg-[var(--tg-bg)] px-4 py-3" style={{ top: "var(--app-safe-top)" }}>
         {(
           [
             { k: "friends", label: "Друзья" },

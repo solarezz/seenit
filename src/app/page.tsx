@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api, webApp, getStartParam } from "@/lib/client";
+import { api, webApp, getStartParam, initSafeArea } from "@/lib/client";
 import WishlistTab from "@/components/WishlistTab";
 import RecsTab from "@/components/RecsTab";
 import InboxTab from "@/components/InboxTab";
@@ -30,6 +30,7 @@ export default function Home() {
     const wa = webApp();
     wa?.ready();
     wa?.expand();
+    initSafeArea();
     api<{ id: string; name: string }>("/api/me")
       .then(async (u) => {
         setName(u.name);
@@ -70,7 +71,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen">
-      <header className="px-4 pb-1 pt-4">
+      <header className="px-4 pb-1" style={{ paddingTop: "calc(var(--app-safe-top) + 14px)" }}>
         <h1 className="text-xl font-semibold">
           {tab === "wishlist" && "Мой вишлист"}
           {tab === "recs" && "Рекомендации"}

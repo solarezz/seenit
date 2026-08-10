@@ -10,6 +10,8 @@
   --tg-hint: var(--tg-theme-hint-color, #7d8b99);
   --tg-accent: var(--tg-theme-button-color, #5ea3f0);
   --tg-border: rgba(255, 255, 255, 0.08);
+  /* Отступ под кнопки Telegram сверху (перезаписывается из JS по safeAreaInset). */
+  --app-safe-top: 0px;
 }
 
 html,

@@ -15,6 +15,9 @@ interface TgWebApp {
   showAlert?: (msg: string) => void;
   openTelegramLink?: (url: string) => void;
   openLink?: (url: string) => void;
+  safeAreaInset?: { top: number; bottom: number; left: number; right: number };
+  contentSafeAreaInset?: { top: number; bottom: number; left: number; right: number };
+  onEvent?: (event: string, cb: () => void) => void;
 }
 
 declare global {
@@ -51,6 +54,27 @@ export async function api<T = unknown>(path: string, opts: RequestInit = {}): Pr
 
 export function haptic(kind: "light" | "medium" | "heavy" = "light") {
   webApp()?.HapticFeedback?.impactOccurred(kind);
+}
+
+/**
+ * Пишет отступ безопасной зоны сверху в CSS-переменную --app-safe-top,
+ * чтобы шапка не пряталась под кнопками Telegram (Закрыть / ⋯).
+ * Возвращает функцию отписки от событий.
+ */
+export function initSafeArea(): () => void {
+  const apply = () => {
+    const wa = webApp();
+    const top = (wa?.safeAreaInset?.top ?? 0) + (wa?.contentSafeAreaInset?.top ?? 0);
+    document.documentElement.style.setProperty("--app-safe-top", `${top}px`);
+  };
+  apply();
+  const wa = webApp();
+  wa?.onEvent?.("safeAreaChanged", apply);
+  wa?.onEvent?.("contentSafeAreaChanged", apply);
+  wa?.onEvent?.("viewportChanged", apply);
+  return () => {
+    /* telegram-web-app.js не даёт offEvent для всех версий — оставляем как есть */
+  };
 }
 
 /** Открыть внешнюю ссылку (напр. трейлер на YouTube). */

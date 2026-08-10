@@ -71,7 +71,10 @@ export default function SearchOverlay({
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-[var(--tg-bg)]">
-      <div className="flex items-center gap-2 border-b border-[var(--tg-border)] p-3">
+      <div
+        className="flex items-center gap-2 border-b border-[var(--tg-border)] p-3"
+        style={{ paddingTop: "calc(var(--app-safe-top) + 12px)" }}
+      >
         <input
           ref={inputRef}
           value={q}

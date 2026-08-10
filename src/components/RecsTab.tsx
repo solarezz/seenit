@@ -65,7 +65,7 @@ export default function RecsTab() {
   return (
     <div className="pb-24">
       {/* Подвкладки */}
-      <div className="sticky top-0 z-10 flex gap-2 bg-[var(--tg-bg)] px-4 py-3">
+      <div className="sticky z-10 flex gap-2 bg-[var(--tg-bg)] px-4 py-3" style={{ top: "var(--app-safe-top)" }}>
         {SUBTABS.map((t) => (
           <button
             key={t.key}

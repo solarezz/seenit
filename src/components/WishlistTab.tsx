@@ -141,7 +141,7 @@ export default function WishlistTab() {
   return (
     <div className="pb-24">
       {/* Фильтры по статусу */}
-      <div className="sticky top-0 z-10 bg-[var(--tg-bg)] px-4 pt-3">
+      <div className="sticky z-10 bg-[var(--tg-bg)] px-4 pt-3" style={{ top: "var(--app-safe-top)" }}>
         <div className="flex gap-2 overflow-x-auto pb-2">
           {FILTERS.map((f) => (
             <button
