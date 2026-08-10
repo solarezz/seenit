@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { api, webApp } from "@/lib/client";
 import WishlistTab from "@/components/WishlistTab";
+import RecsTab from "@/components/RecsTab";
+import Emoji from "@/components/Emoji";
 
 type Tab = "wishlist" | "recs" | "inbox" | "friends" | "profile";
 
@@ -17,7 +19,7 @@ const NAV: { key: Tab; label: string; icon: string }[] = [
 function Soon({ title }: { title: string }) {
   return (
     <div className="px-6 py-24 text-center text-[var(--tg-hint)]">
-      <p className="text-4xl">🚧</p>
+      <p><Emoji e="🚧" size={40} /></p>
       <p className="mt-3 font-medium text-[var(--tg-text)]">{title}</p>
       <p className="mt-1 text-sm">Появится в следующей фазе.</p>
     </div>
@@ -70,7 +72,7 @@ export default function Home() {
       </header>
 
       {tab === "wishlist" && <WishlistTab />}
-      {tab === "recs" && <Soon title="Рекомендации по вишлисту и новинки" />}
+      {tab === "recs" && <RecsTab />}
       {tab === "inbox" && <Soon title="Реки, которые прислали друзья" />}
       {tab === "friends" && <Soon title="Друзья: инвайты и поиск" />}
       {tab === "profile" && <Soon title="Профиль и любимые фильмы" />}
@@ -84,7 +86,7 @@ export default function Home() {
             className="flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[10px]"
             style={{ color: tab === n.key ? "var(--tg-accent)" : "var(--tg-hint)" }}
           >
-            <span className="text-xl">{n.icon}</span>
+            <Emoji e={n.icon} size={22} />
             {n.label}
           </button>
         ))}

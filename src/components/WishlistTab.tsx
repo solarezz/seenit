@@ -6,6 +6,7 @@ import type { WishStatus, WishlistItem } from "@/lib/types";
 import Poster from "./Poster";
 import StarRating from "./StarRating";
 import SearchOverlay from "./SearchOverlay";
+import Emoji from "./Emoji";
 
 const FILTERS: { key: WishStatus | "all"; label: string }[] = [
   { key: "all", label: "Все" },
@@ -96,7 +97,7 @@ export default function WishlistTab() {
 
       {!loading && shown.length === 0 && (
         <div className="px-6 py-16 text-center text-[var(--tg-hint)]">
-          <p className="text-4xl">🍿</p>
+          <p><Emoji e="🍿" size={40} /></p>
           <p className="mt-3">Тут пока пусто.</p>
           <p className="text-sm">Нажми «+» или напиши боту название фильма.</p>
         </div>

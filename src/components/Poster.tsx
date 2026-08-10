@@ -1,5 +1,7 @@
 "use client";
 
+import Emoji from "./Emoji";
+
 // Постер с плейсхолдером на случай отсутствия картинки.
 export default function Poster({
   src,
@@ -16,7 +18,7 @@ export default function Poster({
         className={`flex items-center justify-center bg-[var(--tg-card)] text-[var(--tg-hint)] ${className}`}
         style={{ aspectRatio: "2 / 3" }}
       >
-        <span className="text-2xl">🎬</span>
+        <Emoji e="🎬" size={28} />
       </div>
     );
   }
