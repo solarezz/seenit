@@ -3,9 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, haptic } from "@/lib/client";
 import type { WishStatus, WishlistItem } from "@/lib/types";
+import type { TitleBrief } from "@/lib/types";
 import Poster from "./Poster";
 import StarRating from "./StarRating";
 import SearchOverlay from "./SearchOverlay";
+import RecommendSheet from "./RecommendSheet";
 import Emoji from "./Emoji";
 
 const FILTERS: { key: WishStatus | "all"; label: string }[] = [
@@ -26,18 +28,55 @@ export default function WishlistTab() {
   const [filter, setFilter] = useState<WishStatus | "all">("all");
   const [loading, setLoading] = useState(true);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [recTitle, setRecTitle] = useState<TitleBrief | null>(null);
+  // key `type:tmdbId` → id записи favorite (для тоггла ❤)
+  const [favMap, setFavMap] = useState<Map<string, string>>(new Map());
+
+  const keyOf = (t: TitleBrief) => `${t.type}:${t.tmdbId}`;
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await api<{ items: WishlistItem[] }>("/api/wishlist");
+      const [data, favs] = await Promise.all([
+        api<{ items: WishlistItem[] }>("/api/wishlist"),
+        api<{ items: { id: string; title: TitleBrief }[] }>("/api/favorites"),
+      ]);
       setItems(data.items);
+      setFavMap(new Map(favs.items.map((f) => [`${f.title.type}:${f.title.tmdbId}`, f.id])));
     } catch {
       setItems([]);
     } finally {
       setLoading(false);
     }
   }, []);
+
+  async function toggleFav(title: TitleBrief) {
+    haptic("light");
+    const k = keyOf(title);
+    const existingId = favMap.get(k);
+    if (existingId) {
+      setFavMap((m) => {
+        const n = new Map(m);
+        n.delete(k);
+        return n;
+      });
+      try {
+        await api(`/api/favorites/${existingId}`, { method: "DELETE" });
+      } catch {
+        load();
+      }
+    } else {
+      try {
+        const res = await api<{ id: string }>("/api/favorites", {
+          method: "POST",
+          body: JSON.stringify({ tmdbId: title.tmdbId, type: title.type }),
+        });
+        setFavMap((m) => new Map(m).set(k, res.id));
+      } catch {
+        load();
+      }
+    }
+  }
 
   useEffect(() => {
     load();
@@ -145,6 +184,19 @@ export default function WishlistTab() {
                   <StarRating value={i.stars} onChange={(v) => patch(i.id, { status: "watched", stars: v })} />
                 </div>
               )}
+
+              {/* Действия: в любимые / порекомендовать */}
+              <div className="mt-2 flex items-center gap-4 text-xs">
+                <button
+                  onClick={() => toggleFav(i.title)}
+                  style={{ color: favMap.has(keyOf(i.title)) ? "#e0245e" : "var(--tg-hint)" }}
+                >
+                  {favMap.has(keyOf(i.title)) ? "♥ В любимых" : "♡ В любимые"}
+                </button>
+                <button onClick={() => setRecTitle(i.title)} className="text-[var(--tg-hint)]">
+                  ↗ Порекомендовать
+                </button>
+              </div>
             </div>
           </li>
         ))}
@@ -164,6 +216,7 @@ export default function WishlistTab() {
       </button>
 
       <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} onAdded={load} />
+      <RecommendSheet title={recTitle} onClose={() => setRecTitle(null)} />
     </div>
   );
 }

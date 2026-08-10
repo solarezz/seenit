@@ -4,7 +4,10 @@
 
 interface TgWebApp {
   initData: string;
-  initDataUnsafe?: { user?: { id: number; first_name?: string; username?: string } };
+  initDataUnsafe?: {
+    user?: { id: number; first_name?: string; username?: string };
+    start_param?: string;
+  };
   ready: () => void;
   expand: () => void;
   colorScheme?: "light" | "dark";
@@ -47,4 +50,17 @@ export async function api<T = unknown>(path: string, opts: RequestInit = {}): Pr
 
 export function haptic(kind: "light" | "medium" | "heavy" = "light") {
   webApp()?.HapticFeedback?.impactOccurred(kind);
+}
+
+/** start_param из deep-link (?startapp=...). */
+export function getStartParam(): string {
+  return webApp()?.initDataUnsafe?.start_param ?? "";
+}
+
+/** Открывает системный шэринг Telegram с готовым текстом и ссылкой. */
+export function shareViaTelegram(url: string, text: string) {
+  const wa = webApp();
+  const share = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
+  if (wa?.openTelegramLink) wa.openTelegramLink(share);
+  else window.open(share, "_blank");
 }

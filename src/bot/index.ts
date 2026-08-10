@@ -1,9 +1,11 @@
 import "dotenv/config";
 import { Bot, InlineKeyboard } from "grammy";
+import cron from "node-cron";
 import { searchTitles, getTitle, posterUrl, type TmdbType } from "../lib/tmdb";
 import { upsertTitle } from "../lib/titles";
 import { upsertUser } from "../lib/auth";
 import { prisma } from "../lib/db";
+import { sendWeeklyReleases, sendWatchReminders } from "../lib/reminders";
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 if (!token) throw new Error("TELEGRAM_BOT_TOKEN не задан в .env");
@@ -112,6 +114,17 @@ bot.callbackQuery(/^add:(movie|tv):(\d+)$/, async (ctx) => {
 });
 
 bot.catch((err) => console.error("Bot error:", err.error));
+
+// Плановые уведомления (время сервера/контейнера; по умолчанию UTC).
+// Новинки по вкусу — понедельник 09:00; напоминание посмотреть — пятница 19:00.
+cron.schedule("0 9 * * 1", () => {
+  console.log("[cron] weekly releases");
+  sendWeeklyReleases().catch((e) => console.error("weekly releases:", e));
+});
+cron.schedule("0 19 * * 5", () => {
+  console.log("[cron] watch reminders");
+  sendWatchReminders().catch((e) => console.error("watch reminders:", e));
+});
 
 bot.start({
   onStart: (info) => console.log(`🤖 Бот @${info.username} запущен`),

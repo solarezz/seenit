@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api, webApp } from "@/lib/client";
+import { api, webApp, getStartParam } from "@/lib/client";
 import WishlistTab from "@/components/WishlistTab";
 import RecsTab from "@/components/RecsTab";
+import InboxTab from "@/components/InboxTab";
+import FriendsTab from "@/components/FriendsTab";
+import ProfileTab from "@/components/ProfileTab";
 import Emoji from "@/components/Emoji";
 
 type Tab = "wishlist" | "recs" | "inbox" | "friends" | "profile";
@@ -16,29 +19,35 @@ const NAV: { key: Tab; label: string; icon: string }[] = [
   { key: "profile", label: "Профиль", icon: "👤" },
 ];
 
-function Soon({ title }: { title: string }) {
-  return (
-    <div className="px-6 py-24 text-center text-[var(--tg-hint)]">
-      <p><Emoji e="🚧" size={40} /></p>
-      <p className="mt-3 font-medium text-[var(--tg-text)]">{title}</p>
-      <p className="mt-1 text-sm">Появится в следующей фазе.</p>
-    </div>
-  );
-}
-
 export default function Home() {
   const [tab, setTab] = useState<Tab>("wishlist");
   const [auth, setAuth] = useState<"loading" | "ok" | "fail">("loading");
   const [name, setName] = useState<string>("");
+  const [myId, setMyId] = useState<string>("");
+  const [botUsername, setBotUsername] = useState<string>("");
 
   useEffect(() => {
     const wa = webApp();
     wa?.ready();
     wa?.expand();
-    api<{ name: string }>("/api/me")
-      .then((u) => {
+    api<{ id: string; name: string }>("/api/me")
+      .then(async (u) => {
         setName(u.name);
+        setMyId(u.id);
         setAuth("ok");
+
+        // Имя бота для инвайт-ссылок
+        api<{ botUsername: string }>("/api/config")
+          .then((c) => setBotUsername(c.botUsername))
+          .catch(() => {});
+
+        // Принять инвайт по deep-link (?startapp=friend_<id>)
+        const code = getStartParam();
+        if (code.startsWith("friend_")) {
+          api("/api/friends/invite", { method: "POST", body: JSON.stringify({ code }) })
+            .then(() => setTab("friends"))
+            .catch(() => {});
+        }
       })
       .catch(() => setAuth("fail"));
   }, []);
@@ -50,7 +59,7 @@ export default function Home() {
   if (auth === "fail") {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-2 px-8 text-center">
-        <p className="text-4xl">🎬</p>
+        <Emoji e="🎬" size={44} />
         <p className="font-medium">Открой приложение через Telegram</p>
         <p className="text-sm text-[var(--tg-hint)]">
           Мини-апп работает только внутри бота — авторизация идёт через Telegram.
@@ -73,9 +82,9 @@ export default function Home() {
 
       {tab === "wishlist" && <WishlistTab />}
       {tab === "recs" && <RecsTab />}
-      {tab === "inbox" && <Soon title="Реки, которые прислали друзья" />}
-      {tab === "friends" && <Soon title="Друзья: инвайты и поиск" />}
-      {tab === "profile" && <Soon title="Профиль и любимые фильмы" />}
+      {tab === "inbox" && <InboxTab />}
+      {tab === "friends" && <FriendsTab botUsername={botUsername} myId={myId} />}
+      {tab === "profile" && <ProfileTab />}
 
       {/* Нижняя навигация */}
       <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-[var(--tg-border)] bg-[var(--tg-bg)] pb-[env(safe-area-inset-bottom)]">
