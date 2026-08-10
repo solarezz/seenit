@@ -35,15 +35,20 @@ curl -I http://127.0.0.1:3100    # ожидаем HTTP 200
 ```bash
 sudo cp nginx/seenit.solarezz.dev.conf /etc/nginx/sites-available/seenit.solarezz.dev
 sudo ln -s /etc/nginx/sites-available/seenit.solarezz.dev /etc/nginx/sites-enabled/
+sudo mkdir -p /var/www/certbot
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
-## 4. Выпустить TLS-сертификат
+## 4. Выпустить TLS-сертификат (webroot-метод)
+`--nginx`-метод спотыкается, если `location /` проксирует всё в приложение (ACME-путь
+отдаёт 404). Поэтому выпускаем через webroot, а затем ставим сертификат в nginx:
 ```bash
-sudo certbot --nginx -d seenit.solarezz.dev
+sudo certbot certonly --webroot -w /var/www/certbot -d seenit.solarezz.dev
+sudo certbot install --nginx --cert-name seenit.solarezz.dev
+sudo nginx -t && sudo systemctl reload nginx
 ```
-certbot сам допишет 443-блок и HTTP→HTTPS-редирект. Открой `https://seenit.solarezz.dev` —
-должна отдаться страница «Открой через Telegram» (вне Telegram нет подписи — это норма).
+Открой `https://seenit.solarezz.dev` — должна отдаться страница «Открой через Telegram»
+(вне Telegram нет подписи — это норма).
 
 ## 5. Подключить Mini App к боту (@BotFather)
 1. [@BotFather](https://t.me/BotFather) → `/myapps` → выбрать бота → **Web App URL** = `https://seenit.solarezz.dev`.
