@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { api, haptic } from "@/lib/client";
-import type { SearchResult } from "@/lib/types";
+import type { SearchResult, TitleBrief } from "@/lib/types";
 import Poster from "./Poster";
+import TitleDetailSheet from "./TitleDetailSheet";
 import Emoji from "./Emoji";
 
 type Mode = "wishlist" | "trending";
@@ -20,6 +21,7 @@ export default function RecsTab() {
   const [empty, setEmpty] = useState(false);
   const [added, setAdded] = useState<Set<string>>(new Set());
   const [adding, setAdding] = useState<string | null>(null);
+  const [detailTitle, setDetailTitle] = useState<TitleBrief | null>(null);
 
   const keyOf = (r: SearchResult) => `${r.type}:${r.tmdbId}`;
 
@@ -105,7 +107,9 @@ export default function RecsTab() {
           return (
             <li key={k} className="flex flex-col">
               <div className="relative overflow-hidden rounded-xl">
-                <Poster src={r.poster} alt={r.title} className="w-full" />
+                <button onClick={() => setDetailTitle(r)} className="block w-full" aria-label="Детали">
+                  <Poster src={r.poster} alt={r.title} className="w-full" />
+                </button>
                 <button
                   onClick={() => add(r)}
                   disabled={isAdded || adding === k}
@@ -125,6 +129,8 @@ export default function RecsTab() {
           );
         })}
       </ul>
+
+      <TitleDetailSheet open={detailTitle} onClose={() => setDetailTitle(null)} onChanged={() => load(mode)} />
     </div>
   );
 }

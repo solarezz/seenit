@@ -2,9 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { api, haptic, shareViaTelegram } from "@/lib/client";
-import type { FeedItem, FriendEntry, PublicUser } from "@/lib/types";
+import type { FeedItem, FriendEntry, PublicUser, TitleBrief } from "@/lib/types";
 import Poster from "./Poster";
 import Emoji from "./Emoji";
+import TogetherSheet from "./TogetherSheet";
+import TitleDetailSheet from "./TitleDetailSheet";
 
 type Sub = "friends" | "feed";
 type UserResult = PublicUser & { relation: string | null };
@@ -56,6 +58,8 @@ function FriendsList({ botUsername, myId }: { botUsername: string; myId: string 
   const [q, setQ] = useState("");
   const [results, setResults] = useState<UserResult[]>([]);
   const [requested, setRequested] = useState<Set<string>>(new Set());
+  const [together, setTogether] = useState<PublicUser | null>(null);
+  const [detailTitle, setDetailTitle] = useState<TitleBrief | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -220,6 +224,13 @@ function FriendsList({ botUsername, myId }: { botUsername: string; myId: string 
                 <p className="truncate text-sm font-medium">{f.user.name}</p>
                 {f.user.username && <p className="text-xs text-[var(--tg-hint)]">@{f.user.username}</p>}
               </div>
+              <button
+                onClick={() => setTogether(f.user)}
+                className="rounded-lg px-2.5 py-1.5 text-xs font-medium"
+                style={{ background: "var(--tg-card)", border: "1px solid var(--tg-border)" }}
+              >
+                🍿 Вместе
+              </button>
               <button onClick={() => remove(f.id)} className="p-1 text-[var(--tg-hint)]" aria-label="Удалить">
                 ✕
               </button>
@@ -233,6 +244,16 @@ function FriendsList({ botUsername, myId }: { botUsername: string; myId: string 
           Ожидают подтверждения: {outgoing.map((o) => o.user.name).join(", ")}
         </p>
       )}
+
+      <TogetherSheet
+        friend={together}
+        onClose={() => setTogether(null)}
+        onOpenTitle={(t) => {
+          setTogether(null);
+          setDetailTitle(t);
+        }}
+      />
+      <TitleDetailSheet open={detailTitle} onClose={() => setDetailTitle(null)} />
     </div>
   );
 }

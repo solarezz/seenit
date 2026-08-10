@@ -21,6 +21,18 @@ export interface SearchResult extends TitleBrief {
   overview: string | null;
 }
 
+export interface TitleDetail extends TitleBrief {
+  overview: string | null;
+  genres: string[];
+  rating: number | null;
+  runtime: number | null;
+  seasons: number | null;
+  cast: string[];
+  trailerKey: string | null;
+  inWishlist: boolean;
+  inFavorites: boolean;
+}
+
 export interface PublicUser {
   id: string;
   username: string | null;

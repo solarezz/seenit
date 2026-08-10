@@ -112,3 +112,47 @@ export async function getTrending(limit = 20): Promise<TmdbTitle[]> {
 export function posterUrl(path: string | null, size: "w185" | "w342" | "w500" = "w342"): string | null {
   return path ? `${TMDB_IMG}/${size}${path}` : null;
 }
+
+export interface TmdbDetail extends TmdbTitle {
+  genreNames: string[];
+  rating: number | null;
+  runtime: number | null; // минуты (фильм) или длина серии (сериал)
+  seasons: number | null; // только для сериалов
+  cast: string[]; // топ актёров
+  trailerKey: string | null; // YouTube video id
+}
+
+interface RawDetail extends RawItem {
+  genres?: { id: number; name: string }[];
+  vote_average?: number;
+  runtime?: number;
+  episode_run_time?: number[];
+  number_of_seasons?: number;
+  credits?: { cast?: { name: string }[] };
+  videos?: { results?: { key: string; site: string; type: string; official?: boolean }[] };
+}
+
+/** Полные детали тайтла: жанры, рейтинг, актёры, трейлер. */
+export async function getTitleDetail(tmdbId: number, type: TmdbType): Promise<TmdbDetail> {
+  const raw = await tmdb<RawDetail>(`/${type}/${tmdbId}`, {
+    append_to_response: "credits,videos",
+    include_video_language: "ru,en,null",
+  });
+  const base = normalize(raw, type)!;
+
+  const videos = raw.videos?.results ?? [];
+  const trailer =
+    videos.find((v) => v.site === "YouTube" && v.type === "Trailer" && v.official) ??
+    videos.find((v) => v.site === "YouTube" && v.type === "Trailer") ??
+    videos.find((v) => v.site === "YouTube" && v.type === "Teaser");
+
+  return {
+    ...base,
+    genreNames: raw.genres?.map((g) => g.name) ?? [],
+    rating: typeof raw.vote_average === "number" && raw.vote_average > 0 ? Number(raw.vote_average.toFixed(1)) : null,
+    runtime: raw.runtime ?? raw.episode_run_time?.[0] ?? null,
+    seasons: raw.number_of_seasons ?? null,
+    cast: (raw.credits?.cast ?? []).slice(0, 8).map((c) => c.name),
+    trailerKey: trailer?.key ?? null,
+  };
+}

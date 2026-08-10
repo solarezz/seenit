@@ -14,6 +14,7 @@ interface TgWebApp {
   HapticFeedback?: { impactOccurred: (s: "light" | "medium" | "heavy") => void };
   showAlert?: (msg: string) => void;
   openTelegramLink?: (url: string) => void;
+  openLink?: (url: string) => void;
 }
 
 declare global {
@@ -50,6 +51,13 @@ export async function api<T = unknown>(path: string, opts: RequestInit = {}): Pr
 
 export function haptic(kind: "light" | "medium" | "heavy" = "light") {
   webApp()?.HapticFeedback?.impactOccurred(kind);
+}
+
+/** Открыть внешнюю ссылку (напр. трейлер на YouTube). */
+export function openExternal(url: string) {
+  const wa = webApp();
+  if (wa?.openLink) wa.openLink(url);
+  else window.open(url, "_blank");
 }
 
 /** start_param из deep-link (?startapp=...). */
