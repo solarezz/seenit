@@ -1,10 +1,10 @@
 # Деплой Seenit на seenit.solarezz.dev (Docker + системный nginx)
 
-Контейнеры: **Postgres** + **web** (Next.js, слушает `127.0.0.1:3000`) + **bot** (grammY, long-polling).
+Контейнеры: **Postgres** + **web** (Next.js, слушает `127.0.0.1:3100`) + **bot** (grammY, long-polling).
 HTTPS и домен держит **системный nginx** на сервере `77.91.79.169`, проксируя на контейнер.
 
 ```
-Интернет → nginx (:443, TLS) → 127.0.0.1:3000 (docker: web) → db (docker)
+Интернет → nginx (:443, TLS) → 127.0.0.1:3100 (docker: web) → db (docker)
                                                    bot (docker) ─┘  (без внешних портов)
 ```
 
@@ -28,7 +28,7 @@ docker compose logs -f web bot   # дождись "Ready" у web и "Бот @...
 ```
 Проверка, что web отвечает локально:
 ```bash
-curl -I http://127.0.0.1:3000    # ожидаем HTTP 200
+curl -I http://127.0.0.1:3100    # ожидаем HTTP 200
 ```
 
 ## 3. Настроить nginx

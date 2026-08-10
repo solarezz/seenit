@@ -4,7 +4,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: seenit
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD не задан в .env}
       POSTGRES_DB: seenit
     volumes:
       - pgdata:/var/lib/postgresql/data
@@ -30,9 +30,9 @@ services:
         condition: service_healthy
     # Синхронизируем схему с БД и стартуем мини-апп
     command: sh -c "npx prisma db push --skip-generate && npm start"
-    # Слушаем только локально — наружу отдаёт системный nginx
+    # Слушаем только локально на 3100 (3000 занят другим аппом) — наружу отдаёт nginx
     ports:
-      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:3100:3000"
 
   bot:
     build:
